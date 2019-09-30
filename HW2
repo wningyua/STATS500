@@ -1,0 +1,203 @@
+---
+title: "STATS500HW2"
+author: "Ningyuan Wang"
+date: "9/28/2019"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(faraway)
+```
+##Data Cleaning
+The dataset is weekly wages data for US male workers sampled from the current population survey in 1988. I removed some potential missing values first. 
+```{r, echo=FALSE, include =FALSE}
+data("uswages")#read in the data
+
+#remove the results below zero
+uswages <- uswages[uswages$exper >= 0, ] 
+
+#convert mutiple columns to factors
+convert_names <- c('race', 'smsa', 'ne', 'mw', 'so', 'we', 'pt')
+uswages[, convert_names] <- lapply(uswages[, convert_names] , factor)
+summary(uswages)
+```
+
+##Part A
+1.
+The response of the regression model is weekly wages and the predictors are years of education and experience. The estimate of coefficients as follow.  
+```{r }
+lm1 <- lm(wage ~ educ + exper, data = uswages)
+lm1$coefficients
+```
+
+2. 
+Based on the R-squared value in the summary table, 13.39% of variation in the response is explained by these predictors.
+```{r, echo = FALSE, include=FALSE}
+summary(lm1)
+```
+
+3.  
+The observation of Row 1550 has the largest postive residual, and the residual is 7249.174.
+The case numer of the observation is 15387.
+```{r}
+uswages$lm1_res <- residuals(lm1) #add the residual column to the data 
+which.max(uswages$lm1_res)
+uswages[1550,]#case number is 15387
+```
+
+4. 
+The mean of the residual is bigger than the median. It may because the residual distribution is 
+not symmetric, and it has a right skewness. 
+```{r}
+mean(uswages$lm1_res)#-1.381535e-15
+median(uswages$lm1_res)#-52.14337
+plot(density(uswages$lm1_res), main = "residual distribution")
+```
+
+5.
+Since the parameter of the predictor ‘experience’ in the model is 9.3287, which means one year difference in experience will result a 9.33 dollars difference in predicted weekly wage. 
+
+6.
+The correlation between the fitted values and residuals is close to zero, which means there is no relationship between the fitted values and residuals. In geometry, it means that the vector of fitted values and the vector of residuals are almost orthogonal, and the angle between the two is almost pi. 
+
+```{r,echo=FALSE}
+uswages$fitted <- fitted(lm1)#add fitted value to the data
+cor(uswages$fitted,uswages$lm1_res)#6.35678e-17, very weak positive correlation between two 
+plot(uswages$fitted, uswages$lm1_res, ylab = "residuals", xlab = "fitted")
+```
+
+##Part B
+
+```{r}
+#matrices set-up
+mat_temp <- matrix(c(2,-1,3,3,2,1,0,0,-1,0,-2,-2,-2,3,3,3,0,0,0,1),ncol=2)
+mat_x <- cbind(rep(1, times=10), mat_temp) #matrix of predictor 
+mat_beta <- matrix(c(1,-1,2), ncol=1) #matrix of parameter
+mat_eps <- matrix(rnorm(10, mean = 0, sd = 1), 10,1) #matrix of error
+mat_y <- mat_x %*% mat_beta + mat_eps #matrix of real y 
+mat_x_trans <- t(mat_x)# matrix of x_transpose
+
+```
+
+1.
+The estimation of beta is a 3 by 1 matrix (i.e. beta1_estimate, beta2_estimate, beta3_estimate). Compare the estimate entries with entries in the beta matrix, I found that the estimate of beta is close to the real beta.
+```{r}
+xtxi <- solve(mat_x_trans %*% mat_x)
+beta_hat <- xtxi  %*% mat_x_trans %*% mat_y
+beta_hat
+```
+
+2.
+Since we already known the sigma^2 is 1, so the real variance of beta_hat is the inverse of xtx.
+```{r}
+xtxi
+```
+
+3.
+The estimate of sigma^2 is close to the real variance (i.e. 1)
+```{r}
+rss <- sum((mat_y-mat_x %*% beta_hat)^2)
+n <- nrow(mat_y) 
+p <- 2
+sigma2 <-  rss / (n - (p + 1))
+sigma2
+```
+
+4. 
+The histograms of 1000 values of beta estimate show as follows. The variances for each beta estimate matche the true variance in question 2. 
+
+```{r, echo=FALSE}
+#estimate beta1
+beta_1000 <- replicate(n=1000, {
+  eps <- matrix(rnorm(10), 10,1)
+  y <- mat_x %*% mat_beta + eps
+  beta_hat <- solve(mat_x_trans %*% mat_x)  %*% mat_x_trans %*% y
+})
+
+#store the estimates
+beta1_1000 <- beta_1000[1,,]
+beta2_1000 <- beta_1000[2,,]
+beta3_1000 <- beta_1000[3,,]
+```
+
+```{r, echo=FALSE}
+hist(beta1_1000, xlab = "beta1_hat", main = "1000 values of beta1_hat")
+var(beta1_1000)
+
+hist(beta2_1000, xlab = "beta2_hat", main = "1000 values of beta2_hat")
+var(beta2_1000)
+
+hist(beta3_1000, xlab = "beta3_hat", main = "1000 values of beta3_hat")
+var(beta3_1000)
+```
+
+5. 
+According to the histogram, the estimate of variance provides a reliable estimate of variance. I think this is because we have 1000 replicate of estimate, since the replicate is big enough, the estimate is reliable. 
+
+```{r, echo = FALSE}
+beta_1000 <- replicate(n=1000, {
+  eps <- matrix(rnorm(10), ncol = 1)
+  y <- mat_x %*% mat_beta + eps
+  beta_hat <- solve(mat_x_trans %*% mat_x)  %*% mat_x_trans %*% y
+})
+
+var_1000 <- replicate(n=1000, {
+  eps <- matrix(rnorm(10), ncol = 1)
+  y <- mat_x %*% mat_beta + eps
+  beta_hat <- solve(mat_x_trans %*% mat_x)  %*% mat_x_trans %*% y
+  rss <- sum((y - mat_x %*% beta_hat)^2)
+  n <- nrow(y)
+  p <- 2
+  sigma2 <-  rss / (n- (p + 1))
+})
+
+hist(var_1000, xlab = "var_hat", main = "1000 values of var_hat")
+```
+
+6. 
+Rather than a normal distribution for error, I chose a uniform distribution (mean is 0 and variance is 1) with error term. According to the histograms of each beta estimate, the estimates are close to the real betas. Also, the variances of each beta estimate match the true variance in question 2. 
+The new estimate of sigma^2 also provides a reliable estimate of sigma^2.
+Although the error distribution changes, the estimate of beta and the sigma^2 did not change a lot. I think this is because we have big enough samples (i.e. 1000) in this example. 
+```{r}
+betaunif_1000 <- replicate(n=1000, {
+  eps_unif <- matrix(runif(10, min = -1.74, max = 1.74), 10*1)
+  y <- mat_x %*% mat_beta + eps_unif
+  beta_hat <- solve(mat_x_trans %*% mat_x)  %*% mat_x_trans %*% y
+})
+
+#store the estimates
+betaunif1 <- betaunif_1000[1,,]
+betaunif2 <- betaunif_1000[2,,]
+betaunif3 <- betaunif_1000[3,,]
+
+#make histograms and compute variance of each beta hat
+hist(betaunif1, xlab = "beta1_hat", main = "1000 values of beta1_hat")
+var(betaunif1)#0.138644
+
+hist(betaunif2, xlab = "beta2_hat", main = "1000 values of beta2_hat")
+var(betaunif2)#0.05168571
+
+hist(betaunif3, xlab = "beta2_hat", main = "1000 values of beta3_hat")
+var(betaunif3)#0.02769742
+
+
+#estimate of sigma2
+varunif_1000 <- replicate(n=1000, {
+  eps_unif <- matrix(runif(10, min = -1.74, max = 1.74), 10*1)
+  y <- mat_x %*% mat_beta + eps_unif
+  beta_hat <- solve(mat_x_trans %*% mat_x)  %*% mat_x_trans %*% y
+  rss <- sum((y - mat_x %*% beta_hat)^2)
+  n <- nrow(y)
+  p <- 2
+  sigma2 <-  rss / (n- (p + 1))
+})
+
+hist(varunif_1000, xlab = "sigma^2", main = "1000 values of sigma^2 with Uniform")
+
+```
+
+
+
