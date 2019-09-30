@@ -1,1 +1,80 @@
-TEST
+---
+title: "STATS500-HW1"
+author: "Ningyuan Wang"
+date: "9/17/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=FALSE}
+library(faraway)
+data("teengamb")
+```
+
+###Overview
+The dataset "teengamb" is collected from a survey that conducted to study teenage gambling in Britain. There are 47 observations with 5 variables. Variables are sex, status, income, verbal, and gamble.
+
+```{r}
+dim(teengamb) 
+colnames(teengamb)#sex, status, income, verbal, and gamble
+teengamb$sex<-factor(teengamb$sex)
+levels(teengamb$sex)<-c("Male","Female")#treat "sex" as a categorical variable
+```
+
+
+###Numerical Summary
+Among 47 teenagers in the study, 28 of them are male and 19 of them are female. The socioeconomic status scores that based on their parents' occupations range from 18 to 75 with an average of 45.23. Similarly, incomes range from 0.6 pounds to 15 pounds per week with an average of 4.64 pounds per week. The range of their verbal score is large (12-point scale) with a minimum score at 1 and a maxinum score at 10. Last but not least, expenditure on gambling ranges from 0 to 156 pounds per year in the survey. 
+```{r}
+summary(teengamb)
+```
+
+
+###Graphical Summary
+In terms of gamble expeniture, most (i.e more than half) teenagers in the survey spent less than 25 pounds per week. There is also an interesting difference in gamble expenditure that is male spends more money than female in gambling, as the boxplot shows on the upper-right. Also, there is a somehow relationship between social status and gamble expenditure that is less gamble expenditure reflects as a higher social status (the social status socre is based on parents' occupation). However, a more weekly income reflects as a more expendtiture in gambling for teenagers in the survey. 
+
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+hist(teengamb$gamble,xlab = "Gamble Expenditure",main="")# In the study, most teenagers cost no more than 25 pounds in gamble per year
+plot(teengamb$sex, teengamb$gamble, xlab="Sex", ylab="Gamble Expenditure")# Male spend more money in gamble than female
+plot(teengamb$status,teengamb$gamble, xlab = "Status", ylab="Gamble Expenditure")#the gamble cost is less as the teengaers' parents occpuation increases
+plot(teengamb$income,teengamb$gamble, xlab = "Income", ylab="Gamble Expenditure")#has some relationship between income and gamble 
+```
+
+###Additional Questions
+In the survey, the mean of variable "income" is 4.64 pounds, and the median is 3.25 pounds. The mean of variable "gamble" is 19.3 pounds, and the median is 6 pounds. Both variables have larger means than their medians. The reason of means are larger than medians for those two variables is that they both have extrame large values which lead to means are larger than medans. Also, with the density plots of the two variables, it is noticable that both distributions are skewed-right. 
+```{r}
+round(mean(teengamb$income),digits = 2)#4.64
+round(median(teengamb$income),digits = 2)#3.25
+round(mean(teengamb$gamble),digits  = 2)#19.3
+round(median(teengamb$gamble),digits  = 2)#6
+```
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+plot(density(teengamb$income),main=" ",xlab = "Income")
+plot(density(teengamb$gamble),main=" ",xlab = "Gamble")
+```
+
+
+There are 9 different values for the variable "verbal". The values are 1, 2, 4, 5, 6, 7, 8, 9, and 10. Based on the boxplot, 1 and 2 are considered as outliers because they are under the value of Q1-1.5IQR (i.e. the lower extreame on the boxplot). verbal 2 is at Row 31 and verbal 1 is at Row 35 of the dataset. 
+```{r, echo=FALSE}
+sort(unique(teengamb$verbal))#9 different values for the variable "verbal"
+boxplot(teengamb$verbal, xlab="Verbal")
+```
+```{r}
+teengamb[teengamb$verbal<3,] #Verbal 2 is at Row 31, and verbal 1 is at Row 35.
+```
+
+
+
+
+
+
+
+
+
+
+
+
