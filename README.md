@@ -1,2 +1,2 @@
 # STATS500
-# Linear Regression 
+# Regression 
