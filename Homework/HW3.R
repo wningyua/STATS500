@@ -50,7 +50,7 @@ confint(lm1, 'salary', level = 0.99) #99%CI = (-0.146684 5.251624)
 # With 99% confidence, we conclude that the true parameter of predictor salary falls between 
 # -0.15 and 5.25.
 
-# 6. 需要和同学核查
+# 6.
 library(ellipse)
 # plot the confidence region 
 plot(ellipse(lm1, c('ratio', 'salary')), type = "l", xlim = c(-1,0), main = "95% Joint Confidence Region")
@@ -84,7 +84,6 @@ anova(lm0, lm2)
 # effect on the response. 
 
 
-# 以上已完成------------------------------------------------------------------------------
 # Part B
 # check the relationships between variables
 pairs(~gamble + sex + status + income + verbal, data = teengamb)
@@ -110,12 +109,10 @@ qqnorm(lm4$residuals, ylab = "Residuals")
 qqline(lm4$residuals) #okay
 
 # check for high leverage points
-# half normal 和 studendized residuals 都是用于checking high levelrage points吗？ 如何分别看一块看
-# 不确定是否是leverage point. check for large levelrage points: The points of 42 and 35 are considered as leverage points 
 halfnorm(lm.influence(lm4)$hat, nlab = 2, ylab = "Leverages")
 teengamb[c(42, 35), ]
 
-# compute studentized residuals: identical,这里不需要吧？这样看起来没有high leverage point
+# compute studentized residuals: identical
 lm.s <- summary(lm4)
 sigma.s <- lm.s$sig
 hat.s <- lm.influence(lm4)$hat
